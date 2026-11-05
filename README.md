@@ -150,3 +150,38 @@ curl -i http://localhost:3000/tickets/99999                                     
 - **ECONNREFUSED:** Postgres isn't running, or host/port in `.env` is wrong.
 - **password authentication failed:** `DB_USER` / `DB_PASSWORD` don't match your Postgres login.
 - **Postman returns "title is required" for a valid body:** set the body type to JSON, not Text.
+
+## Comments
+
+Table `comments`: `id`, `ticket_id` (foreign key to `tickets`, `ON DELETE CASCADE`), `body` (required), `created_at`.
+Deleting a ticket deletes its comments.
+
+**List comments: `GET /tickets/:id/comments` → 200** (newest first; 404 if the ticket doesn't exist)
+
+```bash
+curl -i http://localhost:3000/tickets/1/comments
+```
+
+**Add a comment: `POST /tickets/:id/comments` → 201** (`body` must be a non-empty string; 400 for bad input, 404 if the ticket doesn't exist)
+
+```bash
+curl -i -X POST http://localhost:3000/tickets/1/comments \
+  -H "Content-Type: application/json" \
+  -d '{"body": "Technician is on the way"}'
+```
+
+Error examples:
+
+```bash
+curl -i -X POST http://localhost:3000/tickets/1/comments -H "Content-Type: application/json" -d '{}'                # 400
+curl -i -X POST http://localhost:3000/tickets/1/comments -H "Content-Type: application/json" -d '{"body":"   "}'    # 400
+curl -i http://localhost:3000/tickets/99999/comments                                                                # 404
+```
+
+On Windows PowerShell use `curl.exe` and escape the JSON quotes: `-d '{\"body\": \"hello\"}'`.
+
+## CORS
+
+Browsers block a page on one origin (for example `http://localhost:5173`) from reading responses from the API on another origin (`http://localhost:3000`) unless the API opts in with CORS headers.
+The API allows the origin(s) listed in `CORS_ORIGIN` in `.env` (comma-separated for several). Default: `http://localhost:5173`.
+Postman and curl ignore CORS; only browsers enforce it.
