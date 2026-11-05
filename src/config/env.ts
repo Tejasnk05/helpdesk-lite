@@ -12,6 +12,8 @@ const envSchema = z.object({
   DB_PASSWORD: z.string().min(1),
   DB_NAME: z.string().min(1),
   DB_SSL: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
+  //CORS
+  CORS_ORIGIN: z.string().min(1).default('http://localhost:5173'),
 });
 
 const parsed = envSchema.safeParse(process.env);
